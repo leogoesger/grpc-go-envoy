@@ -6,7 +6,9 @@
 4. `make run-docker`
 5. `make run-api`
 
-## Setup
+## Setup (Optional)
+
+Most of the instructions are from this [blog](https://medium.com/swlh/building-a-realtime-dashboard-with-reactjs-go-grpc-and-envoy-7be155dfabfb), but it miss a few things.
 
 1. Download the compiler [https://github.com/protocolbuffers/protobuf/releases](https://github.com/protocolbuffers/protobuf/releases)
 2. Download Go plugins
