@@ -18,7 +18,7 @@ $ go get google.golang.org/protobuf/cmd/protoc-gen-go \
 ```
 
 3. Copy compiler to your PATH, I put it under $GOPATH/bin
-4. After write the `proto` file, you need to get both `_grpc.pb.go` and `.pb.go`. I wrote it into `makefile`. They will be saved in `grpc-api/sserver/sensorpb/`
+4. After write the `proto` file, you will get both `_grpc.pb.go` and `.pb.go`. I wrote it into `makefile`. They will be saved in `grpc-api/sserver/sensorpb/`
 
 Update `makefile`  
 ```makefile
@@ -65,7 +65,7 @@ proto-gen-client:
 make proto-gen-client
 ```
 
-9. Under `root` create `envoy/envoy.yaml`. The `yaml` file from the blog didn't work, probably indentation is off.
+9. Under `root` create `envoy/envoy.yaml`. The `yaml` file from the blog didn't work, probably indentation is off. I think this is not working yet.
 
 ```yaml
 admin:
