@@ -1,29 +1,17 @@
-run-api:
-	cd grpc-api; go run main.go
+run:
+	go run app/api/main.go
 
-run-client:
-	cd grpc-client; npm start
+readmsg:
+	grpcurl -plaintext -d '{"name": "hello"}' localhost:50051 chat.Chat.ReadMsg
 
-proto-gen-api:
+chat-gen:
+	cd business/chat; \
 	protoc --go_out=. --go_opt=paths=source_relative \
     	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    	grpc-api/protos/sensor.proto; \
-	mv grpc-api/protos/sensor_grpc.pb.go grpc-api/server/sensorpb/sensor_grpc.pb.go; \
-	mv grpc-api/protos/sensor.pb.go grpc-api/server/sensorpb/sensor.pb.go
+    	chat.proto
 
-proto-gen-client:
-	protoc --js_out=import_style=commonjs,binary:./grpc-client/src/sensorpb \
-		--grpc-web_out=import_style=commonjs,mode=grpcwebtext:./grpc-client/src/sensorpb \
-		grpc-api/protos/sensor.proto 
+migrate:
+	go run app/admin/main.go migrate
 
-tidy:
-	cd grpc-api; go mod tidy
-
-build-docker: 
-	docker build -t grpc-medium-envoy:1.0 ./envoy
-
-run-docker:
-	docker run --rm -p 9901:9901 -p 10000:10000 grpc-medium-envoy:1.0 
-
-npm-install:
-	cd grpc-client; npm install
+seed:
+	go run app/admin/main.go seed

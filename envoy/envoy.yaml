@@ -23,7 +23,7 @@ static_resources:
               routes:
               - match: { prefix: "/" }
                 route:
-                  cluster: sensor_service
+                  cluster: greeter_service
                   max_grpc_timeout: 0s
               cors:
                 allow_origin_string_match:
@@ -37,9 +37,18 @@ static_resources:
           - name: envoy.filters.http.cors
           - name: envoy.filters.http.router
   clusters:
-  - name: sensor_service
+  - name: greeter_service
     connect_timeout: 0.25s
     type: logical_dns
     http2_protocol_options: {}
     lb_policy: round_robin
-    hosts: [{ socket_address: { address: localhost, port_value: 8080 }}]
+    # win/mac hosts: Use address: host.docker.internal instead of address: localhost in the line below
+    load_assignment:
+      cluster_name: cluster_0
+      endpoints:
+        - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: 0.0.0.0
+                    port_value: 8080
