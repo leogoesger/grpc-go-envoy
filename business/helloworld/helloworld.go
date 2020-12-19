@@ -9,13 +9,14 @@ import (
 
 // HelloWorld implements ...
 type HelloWorld struct {
-	DB *sqlx.DB
+	DB  *sqlx.DB
+	log *log.Logger
 	UnimplementedGreeterServer
 }
 
 // New creates chat client
-func New(db *sqlx.DB) *HelloWorld {
-	return &HelloWorld{DB: db}
+func New(db *sqlx.DB, log *log.Logger) *HelloWorld {
+	return &HelloWorld{DB: db, log: log}
 }
 
 // SayHello implements helloworld.GreeterServer

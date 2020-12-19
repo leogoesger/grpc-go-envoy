@@ -18,7 +18,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatClient interface {
 	ReadMsg(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error)
-	WriteMsg(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*ReadResponse, error)
+	WriteMsg(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*Message, error)
+	StreamLstMsg(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (Chat_StreamLstMsgClient, error)
 }
 
 type chatClient struct {
@@ -38,8 +39,8 @@ func (c *chatClient) ReadMsg(ctx context.Context, in *ReadRequest, opts ...grpc.
 	return out, nil
 }
 
-func (c *chatClient) WriteMsg(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*ReadResponse, error) {
-	out := new(ReadResponse)
+func (c *chatClient) WriteMsg(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*Message, error) {
+	out := new(Message)
 	err := c.cc.Invoke(ctx, "/chat.Chat/WriteMsg", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -47,12 +48,45 @@ func (c *chatClient) WriteMsg(ctx context.Context, in *WriteRequest, opts ...grp
 	return out, nil
 }
 
+func (c *chatClient) StreamLstMsg(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (Chat_StreamLstMsgClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Chat_ServiceDesc.Streams[0], "/chat.Chat/StreamLstMsg", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &chatStreamLstMsgClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Chat_StreamLstMsgClient interface {
+	Recv() (*Message, error)
+	grpc.ClientStream
+}
+
+type chatStreamLstMsgClient struct {
+	grpc.ClientStream
+}
+
+func (x *chatStreamLstMsgClient) Recv() (*Message, error) {
+	m := new(Message)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility
 type ChatServer interface {
 	ReadMsg(context.Context, *ReadRequest) (*ReadResponse, error)
-	WriteMsg(context.Context, *WriteRequest) (*ReadResponse, error)
+	WriteMsg(context.Context, *WriteRequest) (*Message, error)
+	StreamLstMsg(*ReadRequest, Chat_StreamLstMsgServer) error
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -63,8 +97,11 @@ type UnimplementedChatServer struct {
 func (UnimplementedChatServer) ReadMsg(context.Context, *ReadRequest) (*ReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadMsg not implemented")
 }
-func (UnimplementedChatServer) WriteMsg(context.Context, *WriteRequest) (*ReadResponse, error) {
+func (UnimplementedChatServer) WriteMsg(context.Context, *WriteRequest) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WriteMsg not implemented")
+}
+func (UnimplementedChatServer) StreamLstMsg(*ReadRequest, Chat_StreamLstMsgServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamLstMsg not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 
@@ -115,6 +152,27 @@ func _Chat_WriteMsg_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_StreamLstMsg_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ReadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChatServer).StreamLstMsg(m, &chatStreamLstMsgServer{stream})
+}
+
+type Chat_StreamLstMsgServer interface {
+	Send(*Message) error
+	grpc.ServerStream
+}
+
+type chatStreamLstMsgServer struct {
+	grpc.ServerStream
+}
+
+func (x *chatStreamLstMsgServer) Send(m *Message) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,6 +189,12 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Chat_WriteMsg_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamLstMsg",
+			Handler:       _Chat_StreamLstMsg_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "chat.proto",
 }

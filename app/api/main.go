@@ -132,8 +132,8 @@ func run(log *log.Logger) error {
 
 	// =============================================
 	// Register server
-	helloworld.RegisterGreeterServer(s, helloworld.New(db))
-	chat.RegisterChatServer(s, chat.New(db))
+	helloworld.RegisterGreeterServer(s, helloworld.New(db, log))
+	chat.RegisterChatServer(s, chat.New(db, log))
 
 	serverErrors := make(chan error, 1)
 	shutdown := make(chan os.Signal, 1)

@@ -30,7 +30,7 @@ func Seed(db *sqlx.DB) error {
 // may need to be broken up.
 const seeds = `
 	INSERT INTO messages (message_id, from_user, to_user, message, date_created, date_updated) VALUES
-		('5cf37266-3473-4006-984f-9325122678b7', 'Admin Gopher', 'Leo Gopher', 'hello you', '2019-03-24 00:00:00', '2019-03-24 00:00:00')
+		('5cf37266-3473-4006-984f-9325122678b7', 'Admin Gopher', 'Leo Gopher', 'hello you', '2020-12-17T22:30:12Z', '2020-12-17T22:30:12Z')
 		ON CONFLICT DO NOTHING;
 `
 
