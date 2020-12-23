@@ -31,3 +31,6 @@ docker-build:
 
 docker-run:
 	docker run -d -p 8000:8000 -p 9901:9901 grpc-go-envoy:1.0
+
+tidy:
+	go mod tidy

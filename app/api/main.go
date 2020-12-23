@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/ardanlabs/conf"
+	"github.com/joho/godotenv"
 	"github.com/leogoesger/goservices/foundation/database"
 	"github.com/leogoesger/grpc-go/business/chat"
 	"github.com/leogoesger/grpc-go/business/helloworld"
@@ -53,6 +54,11 @@ func main() {
 	}
 }
 func run(log *log.Logger) error {
+
+	// =========================================================================
+	// Load .env
+
+	godotenv.Load(".env")
 
 	// =========================================================================
 	// Configuration
