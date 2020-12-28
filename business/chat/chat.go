@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/leogoesger/goservices/foundation/database"
+	chatv1 "github.com/leogoesger/grpc-go/proto/gen/grpc-go/chat/v1"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +17,7 @@ import (
 type Chat struct {
 	DB  *sqlx.DB
 	log *log.Logger
-	UnimplementedChatServer
+	chatv1.UnimplementedChatServer
 }
 
 // New creates chat client
@@ -25,9 +26,9 @@ func New(db *sqlx.DB, log *log.Logger) *Chat {
 }
 
 // ReadMsg ...
-func (chat *Chat) ReadMsg(ctx context.Context, in *ReadRequest) (*ReadResponse, error) {
+func (chat *Chat) ReadMsg(ctx context.Context, in *chatv1.ReadRequest) (*chatv1.ReadResponse, error) {
 
-	messages := []*Message{}
+	messages := []*chatv1.Message{}
 	q := `SELECT * FROM messages;`
 
 	chat.log.Printf("%s: %s", "messages.select", database.Log(q))
@@ -35,17 +36,17 @@ func (chat *Chat) ReadMsg(ctx context.Context, in *ReadRequest) (*ReadResponse, 
 		return nil, errors.Wrap(err, "select messages")
 	}
 
-	return &ReadResponse{Messages: messages}, nil
+	return &chatv1.ReadResponse{Messages: messages}, nil
 }
 
 // WriteMsg ...
-func (chat *Chat) WriteMsg(ctx context.Context, in *WriteRequest) (*Message, error) {
+func (chat *Chat) WriteMsg(ctx context.Context, in *chatv1.WriteRequest) (*chatv1.Message, error) {
 	now := time.Now()
 	q := `INSERT INTO messages 
 		(message_id, message, to_user, from_user, date_created, date_updated) 
 		VALUES ($1, $2, $3, $4, $5, $6)`
 
-	message := Message{
+	message := chatv1.Message{
 		MessageId:   uuid.New().String(),
 		Message:     in.Message,
 		ToUser:      in.ToUser,
@@ -64,12 +65,12 @@ func (chat *Chat) WriteMsg(ctx context.Context, in *WriteRequest) (*Message, err
 }
 
 // StreamLstMsg ...
-func (chat *Chat) StreamLstMsg(_ *ReadRequest, stream Chat_StreamLstMsgServer) error {
+func (chat *Chat) StreamLstMsg(_ *chatv1.ReadRequest, stream chatv1.Chat_StreamLstMsgServer) error {
 	lastMsgID := ""
 
 	for {
 		time.Sleep(time.Millisecond * 300)
-		messages := []*Message{}
+		messages := []*chatv1.Message{}
 		q := `SELECT * FROM messages ORDER BY date_created DESC LIMIT 1;`
 		if err := chat.DB.Select(&messages, q); err != nil {
 			return errors.Wrap(err, "Select last message")

@@ -5,13 +5,14 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
+	helloworldv1 "github.com/leogoesger/grpc-go/proto/gen/grpc-go/helloworld/v1"
 )
 
 // HelloWorld implements ...
 type HelloWorld struct {
 	DB  *sqlx.DB
 	log *log.Logger
-	UnimplementedGreeterServer
+	helloworldv1.UnimplementedGreeterServer
 }
 
 // New creates chat client
@@ -20,7 +21,7 @@ func New(db *sqlx.DB, log *log.Logger) *HelloWorld {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *HelloWorld) SayHello(ctx context.Context, in *HelloRequest) (*HelloReply, error) {
+func (s *HelloWorld) SayHello(ctx context.Context, in *helloworldv1.HelloRequest) (*helloworldv1.HelloReply, error) {
 	log.Printf("Received: %v", in.GetName())
-	return &HelloReply{Message: "Hello " + in.GetName()}, nil
+	return &helloworldv1.HelloReply{Message: "Hello " + in.GetName()}, nil
 }

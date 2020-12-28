@@ -34,6 +34,8 @@ import (
 	"github.com/leogoesger/goservices/foundation/database"
 	"github.com/leogoesger/grpc-go/business/chat"
 	"github.com/leogoesger/grpc-go/business/helloworld"
+	chatv1 "github.com/leogoesger/grpc-go/proto/gen/grpc-go/chat/v1"
+	helloworldv1 "github.com/leogoesger/grpc-go/proto/gen/grpc-go/helloworld/v1"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -138,8 +140,8 @@ func run(log *log.Logger) error {
 
 	// =============================================
 	// Register server
-	helloworld.RegisterGreeterServer(s, helloworld.New(db, log))
-	chat.RegisterChatServer(s, chat.New(db, log))
+	helloworldv1.RegisterGreeterServer(s, helloworld.New(db, log))
+	chatv1.RegisterChatServer(s, chat.New(db, log))
 
 	serverErrors := make(chan error, 1)
 	shutdown := make(chan os.Signal, 1)
